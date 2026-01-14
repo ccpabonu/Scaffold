@@ -4,7 +4,7 @@ timeout: "1800s"  # 30 minutos
 substitutions:
   _REGION: "us-east1"
   _PROJECT_ID: "attetioncore-dev"       # reemplaza con tu project id
-  _REPO_NAME: "springboot-repo"
+  _REPO_NAME: "attetioncore-repo"
   _IMAGE_NAME: "pruebagcp-app"
   _GKE_CLUSTER: "autopilot-cluster-1"
 

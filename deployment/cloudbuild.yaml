@@ -9,6 +9,14 @@ substitutions:
   _GKE_CLUSTER: "autopilot-cluster-1"
 
 steps:
+  # Build Gradle (usa JDK 25)
+  - name: 'gradle:8.3-jdk25'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - './gradlew clean build --no-daemon'
+    id: 'Gradle Build'
+
   # Build Docker image (multi-stage con Java 25 y Gradle)
   - name: 'gcr.io/cloud-builders/docker'
     args: [

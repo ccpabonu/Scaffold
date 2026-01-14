@@ -12,8 +12,9 @@ steps:
   # Build Docker image (multi-stage con Java 25 y Gradle)
   - name: 'gcr.io/cloud-builders/docker'
     args: [
-      'build', '-t',
-      '${_REGION}-docker.pkg.dev/${_PROJECT_ID}/${_REPO_NAME}/${_IMAGE_NAME}:${SHORT_SHA}',
+      'build',
+      '-f', 'deployment/Dockerfile',
+      '-t', '${_REGION}-docker.pkg.dev/${_PROJECT_ID}/${_REPO_NAME}/${_IMAGE_NAME}:${SHORT_SHA}',
       '.'
     ]
     id: 'Build Docker Image'

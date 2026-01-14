@@ -1,0 +1,67 @@
+# cloudbuild.yaml - Pipeline CI/CD para GKE Autopilot
+timeout: "1200s"
+substitutions:
+  _REGION: "us-east1"
+  _PROJECT_ID: "attetioncore-dev"       # reemplaza con tu project id
+  _REPO_NAME: "attetioncore-repo"
+  _IMAGE_NAME: "pruebagcp-app"
+  _GKE_CLUSTER: "autopilot-cluster-1"
+
+steps:
+  # 1️⃣ Build & Test Gradle
+  - name: 'gcr.io/cloud-builders/gradle'
+    args: ['clean', 'build']
+    id: 'Build & Test'
+
+  # 2️⃣ Build Docker image
+  - name: 'gcr.io/cloud-builders/docker'
+    args: [
+      'build', '-t',
+      '${_REGION}-docker.pkg.dev/${_PROJECT_ID}/${_REPO_NAME}/${_IMAGE_NAME}:${SHORT_SHA}',
+      '.'
+    ]
+    id: 'Build Docker Image'
+
+  # 3️⃣ Push Docker image to Artifact Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args: [
+      'push',
+      '${_REGION}-docker.pkg.dev/${_PROJECT_ID}/${_REPO_NAME}/${_IMAGE_NAME}:${SHORT_SHA}'
+    ]
+    id: 'Push Docker Image'
+
+  # 4️⃣ Get GKE credentials
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        gcloud container clusters get-credentials ${_GKE_CLUSTER} \
+          --region ${_REGION} \
+          --project ${_PROJECT_ID}
+
+  # 5️⃣ Deploy to GKE in namespace pruebas
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        sed -i "s|IMAGE_PLACEHOLDER|${_REGION}-docker.pkg.dev/${_PROJECT_ID}/${_REPO_NAME}/${_IMAGE_NAME}:${SHORT_SHA}|g" k8s/deployment.yaml
+        
+        kubectl apply -f k8s/deployment.yaml -n pruebas
+        kubectl apply -f k8s/service.yaml -n pruebas
+        kubectl apply -f k8s/hpa.yaml -n pruebas
+        
+        kubectl rollout status deployment/${_IMAGE_NAME} -n pruebas --timeout=120s
+
+  # 6️⃣ Tag latest if branch is master
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        if [[ "$BRANCH_NAME" == "master" ]]; then
+          docker tag ${_REGION}-docker.pkg.dev/${_PROJECT_ID}/${_REPO_NAME}/${_IMAGE_NAME}:${SHORT_SHA} \
+            ${_REGION}-docker.pkg.dev/${_PROJECT_ID}/${_REPO_NAME}/${_IMAGE_NAME}:latest
+          docker push ${_REGION}-docker.pkg.dev/${_PROJECT_ID}/${_REPO_NAME}/${_IMAGE_NAME}:latest
+        fi

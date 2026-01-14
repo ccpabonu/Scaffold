@@ -1,4 +1,7 @@
 # cloudbuild.yaml - Pipeline CI/CD para GKE Autopilot
+
+options:
+  logging: CLOUD_LOGGING_ONLY
 timeout: "1200s"
 substitutions:
   _REGION: "us-east1"

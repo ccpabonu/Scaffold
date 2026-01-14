@@ -10,7 +10,7 @@ substitutions:
 
 steps:
   # Build Gradle (usa JDK 25)
-  - name: 'gradle:8.3-jdk25'
+  - name: 'gradle:9.0-jdk25'
     entrypoint: 'bash'
     args:
       - '-c'

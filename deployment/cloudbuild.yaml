@@ -1,22 +1,15 @@
-# cloudbuild.yaml - Pipeline CI/CD para GKE Autopilot
-
 options:
   logging: CLOUD_LOGGING_ONLY
-timeout: "1200s"
+timeout: "1800s"  # 30 minutos
 substitutions:
   _REGION: "us-east1"
-  _PROJECT_ID: "attetioncore-dev"       # reemplaza con tu project id
-  _REPO_NAME: "attetioncore-repo"
+  _PROJECT_ID: "TU_PROJECT_ID"       # reemplaza con tu project id
+  _REPO_NAME: "springboot-repo"
   _IMAGE_NAME: "pruebagcp-app"
   _GKE_CLUSTER: "autopilot-cluster-1"
 
 steps:
-  # 1️⃣ Build & Test Gradle
-  - name: 'gcr.io/cloud-builders/gradle'
-    args: ['clean', 'build']
-    id: 'Build & Test'
-
-  # 2️⃣ Build Docker image
+  # Build Docker image (multi-stage con Java 25 y Gradle)
   - name: 'gcr.io/cloud-builders/docker'
     args: [
       'build', '-t',
@@ -25,7 +18,7 @@ steps:
     ]
     id: 'Build Docker Image'
 
-  # 3️⃣ Push Docker image to Artifact Registry
+  # Push Docker image to Artifact Registry
   - name: 'gcr.io/cloud-builders/docker'
     args: [
       'push',
@@ -33,7 +26,7 @@ steps:
     ]
     id: 'Push Docker Image'
 
-  # 4️⃣ Get GKE credentials
+  # Get GKE credentials
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: 'bash'
     args:
@@ -43,7 +36,7 @@ steps:
           --region ${_REGION} \
           --project ${_PROJECT_ID}
 
-  # 5️⃣ Deploy to GKE in namespace pruebas
+  # Deploy to GKE in namespace pruebas
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: 'bash'
     args:
@@ -57,7 +50,7 @@ steps:
         
         kubectl rollout status deployment/${_IMAGE_NAME} -n pruebas --timeout=120s
 
-  # 6️⃣ Tag latest if branch is master
+  # Tag latest if branch is master
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: 'bash'
     args:

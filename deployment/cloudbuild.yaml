@@ -41,13 +41,6 @@ steps:
         echo "Imagen: ${_REGION}-docker.pkg.dev/${_PROJECT_ID}/${_REPO_NAME}/${_IMAGE_NAME}:${SHORT_SHA}"
         echo "Mostrando progreso detallado..."
         docker push --progress=plain ${_REGION}-docker.pkg.dev/${_PROJECT_ID}/${_REPO_NAME}/${_IMAGE_NAME}:${SHORT_SHA}
-        EXIT_CODE=$?
-        if [ $EXIT_CODE -ne 0 ]; then
-          echo "‼️ Error en el push de Docker (código de salida: $EXIT_CODE)"
-          echo "Verifica que la cuenta de servicio de Cloud Build tenga el rol Artifact Registry Writer."
-          exit $EXIT_CODE
-        fi
-        echo "✅ Push completado exitosamente."
     id: 'Push Docker Image'
 
       # Get GKE credentials

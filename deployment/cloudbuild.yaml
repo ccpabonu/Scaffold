@@ -39,9 +39,8 @@ steps:
       - |
         echo "=== Iniciando push de la imagen a Artifact Registry ==="
         echo "Imagen: ${_REGION}-docker.pkg.dev/${_PROJECT_ID}/${_REPO_NAME}/${_IMAGE_NAME}:${SHORT_SHA}"
-        echo "Mostrando progreso detallado..."
-        docker push --progress=plain ${_REGION}-docker.pkg.dev/${_PROJECT_ID}/${_REPO_NAME}/${_IMAGE_NAME}:${SHORT_SHA}
-    id: 'Push Docker Image'
+        docker push ${_REGION}-docker.pkg.dev/${_PROJECT_ID}/${_REPO_NAME}/${_IMAGE_NAME}:${SHORT_SHA}
+    id: Push Docker Image
 
       # Get GKE credentials
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'

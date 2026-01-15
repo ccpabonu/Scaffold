@@ -29,15 +29,28 @@ steps:
     ]
     id: 'Build Docker Image'
 
-  # Push Docker image to Artifact Registry
+  # Push Docker image to Artifact Registry (descriptivo)
   - name: 'gcr.io/cloud-builders/docker'
-    args: [
-      'push',
-      '${_REGION}-docker.pkg.dev/${_PROJECT_ID}/${_REPO_NAME}/${_IMAGE_NAME}:${SHORT_SHA}'
-    ]
+    env:
+      - 'DOCKER_CLI_EXPERIMENTAL=enabled'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        echo "=== Iniciando push de la imagen a Artifact Registry ==="
+        echo "Imagen: ${_REGION}-docker.pkg.dev/${_PROJECT_ID}/${_REPO_NAME}/${_IMAGE_NAME}:${SHORT_SHA}"
+        echo "Mostrando progreso detallado..."
+        docker push --progress=plain ${_REGION}-docker.pkg.dev/${_PROJECT_ID}/${_REPO_NAME}/${_IMAGE_NAME}:${SHORT_SHA}
+        PUSH_EXIT_CODE=$?
+        if [ $PUSH_EXIT_CODE -ne 0 ]; then
+          echo "‼️ Error en el push de Docker (código de salida: $PUSH_EXIT_CODE)"
+          echo "Verifica que la cuenta de servicio de Cloud Build tenga el rol Artifact Registry Writer."
+          exit $PUSH_EXIT_CODE
+        fi
+        echo "✅ Push completado exitosamente"
     id: 'Push Docker Image'
 
-  # Get GKE credentials
+      # Get GKE credentials
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: 'bash'
     args:
